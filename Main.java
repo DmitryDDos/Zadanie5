@@ -1,12 +1,20 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             // менюшка
-            System.out.println("Выберите действие от 0 до 7: ");
+            System.out.println("Выберите действие от 0 до 8: ");
             System.out.println("1 - Задание с дробью;");
             System.out.println("2 - Количество мяуканий;");
             System.out.println("3 - Списки");
@@ -131,6 +139,8 @@ public class Main {
                     for (MeowCounter counter : counters) {
                         System.out.println(counter.getCat().toString() + " мяукал " + counter.getMeowCount() + " раз(а).");
                     }
+
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
@@ -156,82 +166,83 @@ public class Main {
                     List<String> result = L.getDifference(L1, L2); // Добавляем в список элементы L1 без повторений и которых нет в L2
                     System.out.println("Элементы из L1, которые отсутствуют в L2: " + result);
 
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
                 case 4: // Мап
                     int errorCount = 0; // Счетчик ошибок
 
-                    // Считывание количества учеников
-                    System.out.print("Введите количество учеников: ");
-                    while (!scanner.hasNextInt()) { // Проверка на ввод числа
-                        System.out.print("Ошибка! Введите целое число: ");
-                        scanner.next(); // Очистка ввода
-                        errorCount++; // Увеличиваем счетчик ошибок
-                    }
-                    int N = scanner.nextInt();
-                    scanner.nextLine(); // Очистка буфера
+                    // Считывание пути к файлу
+                    String filepath = "students.txt"; // Считываем путь к файлу
 
                     Map<String, Student> studentsMap = new HashMap<>(); // Используем Map для хранения учеников
 
-                    // Чтение данных о студентах
-                    for (int i = 0; i < N; i++) {
-                        System.out.println("Введите данные студента в формате <Фамилия> <Имя> <Школа> <Балл>: ");
-                        String input = scanner.nextLine();
-                        String[] parts = input.split(" ");
+                    // Чтение данных о студентах из файла
+                    try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            String[] parts = line.split(" ");
 
-                        // Проверка входных данных
-                        if (parts.length != 4) {
-                            System.out.println("Ошибка: неверный формат данных.");
-                            errorCount++; // Увеличиваем счетчик ошибок
-                            continue; // Пропускаем неверные данные
-                        }
+                            // Проверка входных данных
+                            if (parts.length != 4) {
+                                System.out.println("Ошибка: неверный формат данных в строке: " + line);
+                                errorCount++; // Увеличиваем счетчик ошибок
+                                continue; // Пропускаем неверные данные
+                            }
 
-                        String lastName = parts[0];
-                        String firstName = parts[1];
-                        int schoolNumber;
-                        int score;
+                            String lastName = parts[0];
+                            String firstName = parts[1];
+                            int schoolNumber;
+                            int score;
 
-                        // Проверка длины фамилии и имени
-                        if (lastName.length() > 20 || firstName.length() > 20) {
-                            System.out.println("Ошибка: Фамилия и имя должны содержать не более 20 символов.");
-                            errorCount++; // Увеличиваем счетчик ошибок
-                            continue;
-                        }
-
-                        // Проверка номера школы
-                        try {
-                            schoolNumber = Integer.parseInt(parts[2]);
-                            if (schoolNumber < 1 || schoolNumber > 99) {
-                                System.out.println("Ошибка: Номер школы должен быть от 1 до 99.");
+                            // Проверка длины фамилии и имени
+                            if (lastName.length() > 20 || firstName.length() > 20) {
+                                System.out.println("Ошибка: Фамилия и имя должны содержать не более 20 символов в строке: " + line);
                                 errorCount++; // Увеличиваем счетчик ошибок
                                 continue;
                             }
-                        } catch (NumberFormatException e) {
-                            System.out.println("Ошибка: Номер школы должен быть целым числом.");
-                            errorCount++; // Увеличиваем счетчик ошибок
-                            continue;
-                        }
 
-                        // Проверка балла
-                        try {
-                            score = Integer.parseInt(parts[3]);
-                            if (score < 1 || score > 100) {
-                                System.out.println("Ошибка: Балл должен быть от 1 до 100.");
+                            // Проверка номера школы
+                            try {
+                                schoolNumber = Integer.parseInt(parts[2]);
+                                if (schoolNumber < 1 || schoolNumber > 99) {
+                                    System.out.println("Ошибка: Номер школы должен быть от 1 до 99 в строке: " + line);
+                                    errorCount++; // Увеличиваем счетчик ошибок
+                                    continue;
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("Ошибка: Номер школы должен быть целым числом в строке: " + line);
                                 errorCount++; // Увеличиваем счетчик ошибок
                                 continue;
                             }
-                        } catch (NumberFormatException e) {
-                            System.out.println("Ошибка: Балл должен быть целым числом.");
-                            errorCount++; // Увеличиваем счетчик ошибок
-                            continue;
+
+                            // Проверка балла
+                            try {
+                                score = Integer.parseInt(parts[3]);
+                                if (score < 1 || score > 100) {
+                                    System.out.println("Ошибка: Балл должен быть от 1 до 100 в строке: " + line);
+                                    errorCount++; // Увеличиваем счетчик ошибок
+                                    continue;
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("Ошибка: Балл должен быть целым числом в строке: " + line);
+                                errorCount++; // Увеличиваем счетчик ошибок
+                                continue;
+                            }
+
+                            // Используем уникальную комбинацию Фамилия + Имя в качестве ключа
+                            String key = lastName + " " + firstName;
+
+                            // Проверяем и добавляем или обновляем информацию о студенте
+                            studentsMap.put(key, new Student(lastName, firstName, schoolNumber, score));
                         }
-
-                        // Используем уникальную комбинацию Фамилия + Имя в качестве ключа
-                        String key = lastName + " " + firstName;
-
-                        // Проверяем и добавляем или обновляем информацию о студенте
-                        studentsMap.put(key, new Student(lastName, firstName, schoolNumber, score));
+                    } catch (FileNotFoundException e) {
+                        System.err.println("Ошибка: Файл не найден: " + e.getMessage());
+                        return;
+                    } catch (IOException e) {
+                        System.err.println("Ошибка при чтении файла: " + e.getMessage());
+                        return;
                     }
 
                     // Проверка на количество ошибок
@@ -254,7 +265,7 @@ public class Main {
 
                     // Определяем наивысший балл
                     if (!school50Students.isEmpty()) {
-                        int highestScore = school50Students.getFirst().score;
+                        int highestScore = school50Students.get(0).score; // Исправлено с getFirst() на get(0)
                         List<Student> topStudents = new ArrayList<>();
 
                         for (Student student : school50Students) {
@@ -267,7 +278,7 @@ public class Main {
                         if (topStudents.size() > 2) {
                             System.out.println(topStudents.size());
                         } else if (topStudents.size() == 1) {
-                            System.out.println(topStudents.getFirst().lastName + " " + topStudents.getFirst().firstName);
+                            System.out.println(topStudents.get(0).lastName + " " + topStudents.get(0).firstName);
                         } else {
                             for (Student student : topStudents) {
                                 System.out.println(student.lastName + " " + student.firstName);
@@ -277,13 +288,15 @@ public class Main {
                         System.out.println("Нет учеников из школы № 50.");
                     }
 
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
                 case 5: // Сет
-                    String filePath = "C:\\Users\\goldb\\Desktop\\Универ\\ФИТ-3-2023\\Проги\\Zadanie5\\text.txt"; // Укажите путь к вашему файлу
+                    String filePath = "text.txt"; // Укажите путь к вашему файлу
                     TextAnalyzer.countMissingLetters(filePath);
 
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
@@ -313,6 +326,7 @@ public class Main {
                         System.out.println("В очереди нет элементов, которые равны следующему за ним элементу (по кругу).");
                     }
 
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
@@ -356,12 +370,13 @@ public class Main {
 
                     System.out.println(polyline); // Выводим результат
 
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
                 case 8: // Стрим 2
                     PersonProcessor processor = new PersonProcessor();
-                    String FilePath = "C:\\Users\\goldb\\Desktop\\Универ\\ФИТ-3-2023\\Проги\\Zadanie5\\text1.txt"; // Укажите путь к вашему файлу
+                    String FilePath = "text1.txt"; // Укажите путь к вашему файлу
 
                     // Выводим содержимое файла
                     processor.printFileContent(FilePath);
@@ -372,7 +387,7 @@ public class Main {
                     System.out.println("Полученный результат группировки: ");
                     System.out.println(groupedPeople);
 
-
+                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
             }
