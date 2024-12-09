@@ -44,7 +44,6 @@ public class Main {
                     return;
 
                 case 1: // Задание с дробью
-                    // Строим дробь
                     System.out.println("Введите первую дробь: (числитель и знаменатель)");
                     while (!scanner.hasNextInt()) { // Проверка на ввод числа
                         System.out.print("Ошибка! Введите целое число: ");
@@ -56,9 +55,11 @@ public class Main {
                         scanner.next(); // Очистка ввода
                     }
                     int d1 = scanner.nextInt();
-                    Fraction fraction1 = new Fraction(c, d1);
+
+                    // Создаем экземпляр CachedFraction
+                    CachedFraction fraction1 = new CachedFraction(c, d1);
                     System.out.println("Полученная дробь: " + fraction1);
-                    System.out.println("Десятичный вид этой дроби: " + fraction1.toDouble()); // Вывод 10-й дроби
+                    System.out.println("Десятичный вид этой дроби: " + fraction1.getValue()); // Вывод 10-й дроби
                     System.out.println(); // Оставляем пустую строку для красоты
 
                     // Изменяем дробь
@@ -70,7 +71,7 @@ public class Main {
                     int c1 = scanner.nextInt();
                     fraction1.setNumerator(c1); // Меняем числитель дроби
                     System.out.println("Новая дробь: " + fraction1);
-                    System.out.println("Десятичный вид этой дроби: "+fraction1.toDouble()); // Вывод 10-й дроби
+                    System.out.println("Десятичный вид этой дроби: " + fraction1.getValue()); // Вывод 10-й дроби
                     System.out.println(); // Оставляем пустую строку для красоты
 
                     System.out.print("Введите новый знаменатель: ");
@@ -81,7 +82,7 @@ public class Main {
                     int d2 = scanner.nextInt();
                     fraction1.setDenominator(d2); // Меняем знаменатель
                     System.out.println("Новая дробь: " + fraction1);
-                    System.out.println("Десятичный вид этой дроби: " + fraction1.toDouble()); // Вывод 10-й дроби
+                    System.out.println("Десятичный вид этой дроби: " + fraction1.getValue()); // Вывод 10-й дроби
 
                     // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
@@ -170,16 +171,12 @@ public class Main {
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
-                case 4: // Мап
-                    int errorCount = 0; // Счетчик ошибок
+                case 4:
+                    // Обработка данных о студентах из файла
+                    Map<String, Object[]> studentsMap = new HashMap<>();
+                    int errorCount = 0;
 
-                    // Считывание пути к файлу
-                    String filepath = "students.txt"; // Считываем путь к файлу
-
-                    Map<String, Student> studentsMap = new HashMap<>(); // Используем Map для хранения учеников
-
-                    // Чтение данных о студентах из файла
-                    try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
+                    try (BufferedReader br = new BufferedReader(new FileReader("students.txt"))) {
                         String line;
                         while ((line = br.readLine()) != null) {
                             String[] parts = line.split(" ");
@@ -187,8 +184,8 @@ public class Main {
                             // Проверка входных данных
                             if (parts.length != 4) {
                                 System.out.println("Ошибка: неверный формат данных в строке: " + line);
-                                errorCount++; // Увеличиваем счетчик ошибок
-                                continue; // Пропускаем неверные данные
+                                errorCount++;
+                                continue;
                             }
 
                             String lastName = parts[0];
@@ -199,7 +196,7 @@ public class Main {
                             // Проверка длины фамилии и имени
                             if (lastName.length() > 20 || firstName.length() > 20) {
                                 System.out.println("Ошибка: Фамилия и имя должны содержать не более 20 символов в строке: " + line);
-                                errorCount++; // Увеличиваем счетчик ошибок
+                                errorCount++;
                                 continue;
                             }
 
@@ -208,12 +205,12 @@ public class Main {
                                 schoolNumber = Integer.parseInt(parts[2]);
                                 if (schoolNumber < 1 || schoolNumber > 99) {
                                     System.out.println("Ошибка: Номер школы должен быть от 1 до 99 в строке: " + line);
-                                    errorCount++; // Увеличиваем счетчик ошибок
+                                    errorCount++;
                                     continue;
                                 }
                             } catch (NumberFormatException e) {
                                 System.out.println("Ошибка: Номер школы должен быть целым числом в строке: " + line);
-                                errorCount++; // Увеличиваем счетчик ошибок
+                                errorCount++;
                                 continue;
                             }
 
@@ -222,20 +219,17 @@ public class Main {
                                 score = Integer.parseInt(parts[3]);
                                 if (score < 1 || score > 100) {
                                     System.out.println("Ошибка: Балл должен быть от 1 до 100 в строке: " + line);
-                                    errorCount++; // Увеличиваем счетчик ошибок
+                                    errorCount++;
                                     continue;
                                 }
                             } catch (NumberFormatException e) {
                                 System.out.println("Ошибка: Балл должен быть целым числом в строке: " + line);
-                                errorCount++; // Увеличиваем счетчик ошибок
+                                errorCount++;
                                 continue;
                             }
 
-                            // Используем уникальную комбинацию Фамилия + Имя в качестве ключа
-                            String key = lastName + " " + firstName;
-
-                            // Проверяем и добавляем или обновляем информацию о студенте
-                            studentsMap.put(key, new Student(lastName, firstName, schoolNumber, score));
+                            // Сохраняем имя + фамилию и номер школы с баллом
+                            studentsMap.put(lastName + " " + firstName, new Object[]{schoolNumber, score});
                         }
                     } catch (FileNotFoundException e) {
                         System.err.println("Ошибка: Файл не найден: " + e.getMessage());
@@ -245,32 +239,25 @@ public class Main {
                         return;
                     }
 
-                    // Проверка на количество ошибок
-                    if (errorCount > 0) {
-                        System.out.println("Допущены ошибки при вводе.");
-                        System.out.println();
-                        break; // Выход из case 4
-                    }
-
                     // Обработка данных для школы № 50
-                    List<Student> school50Students = new ArrayList<>();
-                    for (Student student : studentsMap.values()) { // Получаем всех учеников из Map
-                        if (student.schoolNumber == 50) {
-                            school50Students.add(student);
+                    List<Map.Entry<String, Object[]>> school50Students = new ArrayList<>();
+                    for (Map.Entry<String, Object[]> entry : studentsMap.entrySet()) {
+                        if ((int) entry.getValue()[0] == 50) { // Проверяем номер школы
+                            school50Students.add(entry);
                         }
                     }
 
                     // Сортировка учеников по баллам (по убыванию)
-                    school50Students.sort(Comparator.comparingInt(s -> -s.score));
+                    school50Students.sort((e1, e2) -> (int) e2.getValue()[1] - (int) e1.getValue()[1]);
 
                     // Определяем наивысший балл
                     if (!school50Students.isEmpty()) {
-                        int highestScore = school50Students.get(0).score; // Исправлено с getFirst() на get(0)
-                        List<Student> topStudents = new ArrayList<>();
+                        int highestScore = (int) school50Students.getFirst().getValue()[1]; // Получаем наивысший балл
+                        List<String> topStudents = new ArrayList<>();
 
-                        for (Student student : school50Students) {
-                            if (student.score == highestScore) {
-                                topStudents.add(student);
+                        for (Map.Entry<String, Object[]> entry : school50Students) {
+                            if ((int) entry.getValue()[1] == highestScore) {
+                                topStudents.add(entry.getKey());
                             }
                         }
 
@@ -278,30 +265,42 @@ public class Main {
                         if (topStudents.size() > 2) {
                             System.out.println(topStudents.size());
                         } else if (topStudents.size() == 1) {
-                            System.out.println(topStudents.get(0).lastName + " " + topStudents.get(0).firstName);
+                            System.out.println(topStudents.getFirst());
                         } else {
-                            for (Student student : topStudents) {
-                                System.out.println(student.lastName + " " + student.firstName);
+                            for (String student : topStudents) {
+                                System.out.println(student);
                             }
                         }
                     } else {
                         System.out.println("Нет учеников из школы № 50.");
                     }
 
-                    // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
                 case 5: // Сет
-                    String filePath = "text.txt"; // Укажите путь к вашему файлу
-                    TextAnalyzer.countMissingLetters(filePath);
+                    TextAnalyzer<Set<String>> analyzer = new TextAnalyzer<>();
+                    Set<String> uniqueLines = new HashSet<>(); // Создаем множество для хранения уникальных строк
+
+                    // Чтение строк из файла и добавление их в Set
+                    try (BufferedReader reader = new BufferedReader(new FileReader("text.txt"))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            uniqueLines.add(line); // Добавляем уникальные строки в множество
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Анализируем текст
+                    analyzer.countMissingLetters(uniqueLines);
 
                     // Возвращаемся к менюшке
                     System.out.println(); // Оставляем пустую строку для красоты
                     break;
 
                 case 6: // Очередь
-                    Queue<String> queue = new LinkedList<>(); // Создаем очередь для строк
+                    Queue<Object> queue = new LinkedList<>(); // Создаем очередь для обобщенного типа
 
                     System.out.print("Введите количество элементов для добавления в очередь: ");
                     while (!scanner.hasNextInt()) { // Проверка на ввод числа

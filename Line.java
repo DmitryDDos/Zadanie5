@@ -9,6 +9,6 @@ public class Line {
 
     @Override
     public String toString() {
-        return "Линия от " + start + " до " + end;
+        return String.format("Линия от %s до %s", start, end);
     }
 }

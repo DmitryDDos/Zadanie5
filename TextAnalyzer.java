@@ -1,43 +1,38 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TextAnalyzer {
+public class TextAnalyzer<T extends Iterable<String>> {
     // Метод для подсчета отсутствующих букв русского алфавита в тексте
-    public static void countMissingLetters(String filePath) {
+    public void countMissingLetters(T textSource) {
         // Русский алфавит
-        String alphabet = "абвгдезийклмнопрстуфхцчшщъыьэюя";
+        String alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
         Set<Character> alphabetSet = new HashSet<>();
         for (char letter : alphabet.toCharArray()) {
             alphabetSet.add(letter);
         }
 
-        // Чтение текста из файла
+        // Чтение текста
         Set<Character> foundLetters = new HashSet<>();
-        StringBuilder fileContent = new StringBuilder(); // Новый StringBuilder для хранения текста из файла
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                fileContent.append(line).append("\n"); // Добавляем строку в StringBuilder
-                // Преобразуем строку в нижний регистр и добавляем буквы в множество
-                for (char ch : line.toLowerCase().toCharArray()) {
-                    if (alphabetSet.contains(ch)) {
-                        foundLetters.add(ch);
-                    }
+        Set<String> uniqueLines = new HashSet<>(); // Множество для хранения уникальных строк
+
+        for (String line : textSource) {
+            uniqueLines.add(line); // Добавляем уникальные строки в множество
+            // Преобразуем строку в нижний регистр и добавляем буквы в множество
+            for (char ch : line.toLowerCase().toCharArray()) {
+                if (alphabetSet.contains(ch)) {
+                    foundLetters.add(ch);
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Ошибка при чтении файла: " + e.getMessage());
-            return;
         }
 
-        // Вывод текста из файла
-        System.out.println("Текст из файла:");
-        System.out.print(fileContent);
+        // Вывод уникальных строк
+        System.out.println("Полученные данные из файла:");
+        for (String uniqueLine : uniqueLines) {
+            System.out.println(uniqueLine);
+        }
 
-        alphabetSet.removeAll(foundLetters); // Подсчет отсутствующих букв
+        // Подсчет отсутствующих букв
+        alphabetSet.removeAll(foundLetters); // Удаляем найденные буквы
         System.out.print("Количество букв русского алфавита, не встречающихся в тексте: " + alphabetSet.size());
         System.out.println();
     }
